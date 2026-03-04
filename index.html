@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>مارکێتی خاڵخاڵان</title>
+    <meta name="apple-mobile-web-app-title" content="Khalkhalan">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3737/3737372.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3737/3737372.png">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { --primary: #2c3e50; --accent: #007bff; --danger: #e74c3c; --success: #27ae60; --warning: #e67e22; --light: #f4f7f6; }
+        body { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); margin: 0; padding: 10px; color: var(--primary); min-height: 100vh; }
+        .container { max-width: 800px; margin: auto; background: rgba(255, 255, 255, 0.98); padding: 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 6px solid var(--accent); }
+        
+        .main-header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed #ddd; }
+        .main-header h1 { color: var(--accent); margin: 0 0 5px 0; font-size: 24px; }
+        .main-header .owner-name { color: #34495e; margin: 0; font-size: 16px; font-weight: bold; }
+
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #eaf2f8; padding: 5px; border-radius: 10px; }
+        .tab-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; cursor: pointer; font-weight: bold; font-size: 14px; color: var(--primary); border-radius: 8px; transition: 0.3s; }
+        .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .currency-selector { background: #eaf2f8; padding: 10px; border-radius: 8px; text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 15px; border: 1px solid #d6eaf8; }
+        .currency-selector input[type="radio"] { transform: scale(1.2); margin: 0 5px; }
+        .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 15px; }
+        table { width: 100%; min-width: 320px; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f8f9fa; padding: 8px 2px; border-bottom: 2px solid #ddd; font-size: 13px; text-align: center; }
+        td { padding: 5px 2px; border-bottom: 1px solid #eee; text-align: center; }
+        .row-num-cell { font-weight: bold; color: var(--accent); font-size: 14px; width: 10%; }
+        input[type="number"], input[type="text"] { width: 100%; padding: 10px 4px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: center; outline: none; background: #fff; -webkit-appearance: none; }
+        input:focus { border-color: var(--accent); background: #f0f8ff; }
+        input.row-total { background-color: #e8f0fe; font-weight: bold; color: var(--primary); pointer-events: none; border: none; }
+        .note-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 15px; text-align: right; outline: none; }
+        .note-input:focus { border-color: var(--warning); }
+        .action-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .top-btns { display: flex; gap: 10px; }
+        .btn { color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; text-align: center; flex: 1; }
+        .btn-add { background: var(--accent); }
+        .btn-remove { background: var(--warning); }
+        .btn-clear { background: var(--danger); }
+        .btn-save { background: var(--success); width: 100%; }
+        .total-section { background: var(--primary); color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .total-converted { font-size: 15px; opacity: 0.9; margin-top: 5px; font-weight: normal; }
+        .bottom-panel { background: #fdfefe; border: 1px solid #eaeded; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;}
+        .rate-box { text-align: center; font-size: 15px; font-weight: bold; padding-bottom: 10px; border-bottom: 1px dashed #ddd; }
+        .rate-box input { width: 100px; display: inline-block; padding: 6px; }
+        .converter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
+        .convert-box { background: #f4f6f7; padding: 10px; border-radius: 6px; font-size: 13px; }
+        .convert-box input { width: 90%; margin: 8px auto; display: block; padding: 6px; }
+        .convert-box span { display: block; margin-top: 5px; font-size: 14px; font-weight: bold; color: var(--danger); }
+        .history-section { margin-top: 10px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .history-section h3 { text-align: center; margin: 0 0 15px 0; color: #2c3e50; font-size: 16px; }
+        .history-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+        .history-card { background: #fdfdfd; border: 1px solid #e1e8ed; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .history-info { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; padding-left: 10px; cursor: pointer; }
+        .history-date { color: #7f8c8d; font-size: 13px; font-weight: bold; }
+        .history-amount { font-weight: bold; color: var(--success); font-size: 15px; }
+        .btn-delete-receipt { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;}
+        .designer-name { text-align: center; margin-top: 25px; color: #7f8c8d; font-size: 14px; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 15px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 10px; }
+        .modal-content { background: #fff; width: 100%; max-width: 450px; border-radius: 12px; padding: 15px; max-height: 95vh; overflow-y: auto; position: relative; }
+        .receipt-print { background: #fff; padding: 15px; border: 2px solid #333; border-radius: 8px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
+        .receipt-print h2 { text-align: center; margin: 0 0 5px 0; color: #333; font-size: 20px; }
+        .receipt-print p { text-align: center; margin: 0 0 15px 0; color: #555; font-size: 13px; }
+        .receipt-print table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
+        .receipt-print th, .receipt-print td { border: 1px solid #ccc; padding: 6px 2px; text-align: center; font-size: 12px; color: #333; word-wrap: break-word; }
+        .receipt-print th { background: #eee; font-size: 13px; }
+        .receipt-total { text-align: left; font-size: 16px; font-weight: bold; color: var(--success); padding-top: 10px; margin-top: 5px; border-top: 2px dashed #999; }
+        .modal-btns { display: flex; gap: 10px; }
+        .btn-download { background: var(--accent); flex: 2; }
+        .btn-close { background: var(--danger); flex: 1; }
+
+        .debt-form { background: #fdfefe; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 20px; }
+        .debt-input-group { margin-bottom: 12px; position: relative; }
+        .debt-input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .debt-type-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .debt-type-toggle label { flex: 1; text-align: center; padding: 10px; background: #eee; border-radius: 8px; cursor: pointer; font-weight: bold; border: 2px solid transparent; }
+        .debt-type-toggle input[type="radio"] { display: none; }
+        .debt-type-toggle input[value="add"]:checked + label { background: #fdedec; border-color: var(--danger); color: var(--danger); }
+        .debt-type-toggle input[value="pay"]:checked + label { background: #eaeded; border-color: var(--success); color: var(--success); }
+        .debtor-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .debtor-name { font-size: 16px; font-weight: bold; color: var(--primary); }
+        .debtor-amount { font-size: 16px; font-weight: bold; color: var(--danger); }
+        .debtor-amount.zero { color: var(--success); }
+        .search-box { width: 100%; padding: 12px; border: 2px solid var(--accent); border-radius: 8px; margin-bottom: 15px; font-size: 15px; text-align: right; }
+        
+        .backup-card { text-align: center; padding: 20px; background: #fff; border-radius: 10px; border: 1px dashed #ccc; margin-bottom: 15px; }
+        .backup-icon { font-size: 40px; margin-bottom: 10px; }
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-top: 10px; }
+        .file-upload-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
+        .btn-upload { background: var(--warning); color: white; padding: 12px; border-radius: 8px; display: block; font-weight: bold; }
+
+        /* ستایلەکانی گەڕانی زیرەک (Autocomplete) */
+        .autocomplete-list { position: absolute; width: 100%; background: #fff; border: 1px solid #ccc; border-top: none; z-index: 99; border-radius: 0 0 8px 8px; max-height: 150px; overflow-y: auto; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .autocomplete-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; color: var(--primary); }
+        .autocomplete-item:hover { background-color: #f4f7f6; }
+
+        /* ستایلەکانی دوگمە خێراکانی ناو پەنجەرەی وەسڵ */
+        .quick-actions { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-quick { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; color: white; cursor: pointer; font-size: 14px; }
+        .btn-quick-add { background: var(--danger); }
+        .btn-quick-pay { background: var(--success); }
+        .quick-form-area { background: #eaf2f8; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #b3d7ff; }
+        .quick-form-area input { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-header">
+        <h1>تایبەت بە مارکێتی خاڵخاڵان</h1>
+        <p class="owner-name">خاوەنی: محمد بێستوون</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-receipt', this)">🧾 وەسڵ</button>
+        <button class="tab-btn" onclick="switchTab('tab-debts', this)">📒 قەرزەکان</button>
+        <button class="tab-btn" onclick="switchTab('tab-backup', this)">💾 داتا</button>
+    </div>
+
+    <div id="tab-receipt" class="tab-content active">
+        <div class="currency-selector">
+            پارەی وەسڵەکە: 
+            <label><input type="radio" name="currencyMode" value="IQD" checked onchange="calculateAll()"> دینار</label>
+            <label><input type="radio" name="currencyMode" value="USD" onchange="calculateAll()"> دۆلار</label>
+        </div>
+
+        <div class="table-responsive">
+            <table id="invoiceTable">
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">#</th>
+                        <th style="width: 33%;">بابەت</th>
+                        <th style="width: 15%;">بڕ</th>
+                        <th style="width: 20%;">نرخ</th>
+                        <th style="width: 20%;">کۆ</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <tr>
+                        <td class="row-num-cell">١</td>
+                        <td><input type="text" placeholder="ناو"></td>
+                        <td><input type="number" class="qty" min="0" placeholder="١" inputmode="decimal" oninput="calculateAll()"></td>
+                        <td><input type="number" class="price" min="0" placeholder="نرخ" inputmode="decimal" oninput="calculateAll()"></td>
+                        <td><input type="text" class="row-total" placeholder="٠" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <input type="text" id="receiptNote" class="note-input" placeholder="تێبینی بنووسە لێرە (ئارەزوومەندانە)...">
+
+        <div class="action-btns">
+            <div class="top-btns">
+                <button class="btn btn-add" onclick="addRow()">+ زیادکردن</button>
+                <button class="btn btn-remove" onclick="removeEmptyRows()">- کەمکردنەوە</button>
+                <button class="btn btn-clear" onclick="clearAll()">پاککردنەوە</button>
+            </div>
+            <button class="btn btn-save" onclick="saveReceipt()">💾 پاشەکەوتکردنی وەسڵ</button>
+        </div>
+
+        <div class="total-section">
+            کۆی گشتی: <span id="grandTotal">0</span> <span id="mainCurrencySymbol">دینار</span>
+            <div class="total-converted">
+                بەرامبەرە بە: <span id="convertedTotal">0</span> <span id="convertedCurrencySymbol">دۆلار</span>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="rate-box">
+                ١٠٠ دۆلار: 
+                <input type="number" id="dollarRate" min="0" value="150000" inputmode="decimal" oninput="calculateAll(); convertUsdToIqd(); convertIqdToUsd();"> دینار
+            </div>
+            <div class="converter-grid">
+                <div class="convert-box">
+                    دۆلار ⬅️ دینار<br>
+                    <input type="number" id="calcUSD" min="0" placeholder="$" inputmode="decimal" oninput="convertUsdToIqd()">
+                    <span id="resIQD">0 دینار</span>
+                </div>
+                <div class="convert-box">
+                    دینار ⬅️ دۆلار<br>
+                    <input type="number" id="calcIQD" min="0" placeholder="دینار" inputmode="decimal" oninput="convertIqdToUsd()">
+                    <span id="resUSD">0 دۆلار</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h3>وەسڵە پاشەکەوتکراوەکان</h3>
+            <p style="text-align:center; font-size:12px; color:#999; margin-top:-10px;">بۆ بینین کلیک لە وەسڵەکە بکە</p>
+            <ul class="history-list" id="historyList"></ul>
+        </div>
+    </div>
+
+    <div id="tab-debts" class="tab-content">
+        
+        <div class="total-section" style="background: var(--danger);">
+            کۆی گشتی قەرزی بازاڕ:<br>
+            <span id="totalMarketDebt" style="font-size: 28px;">0</span> دینار
+        </div>
+
+        <div class="debt-form">
+            <h3 style="margin-top:0; text-align:center; color:var(--primary);">تۆمارکردنی مامەڵەی نوێ</h3>
+            
+            <div class="debt-input-group">
+                <label>ناوی کڕیار:</label>
+                <input type="text" id="debtorName" placeholder="ناوی سیانی یان نازناو..." oninput="showAutocomplete()" onblur="hideAutocompleteDelayed()" autocomplete="off">
+                <div id="autocompleteList" class="autocomplete-list"></div>
+            </div>
+
+            <div class="debt-type-toggle">
+                <input type="radio" id="typeAdd" name="debtType" value="add" checked>
+                <label for="typeAdd">شەنتی برد (قەرز)</label>
+                
+                <input type="radio" id="typePay" name="debtType" value="pay">
+                <label for="typePay">پارەی هێنایەوە</label>
+            </div>
+
+            <div class="debt-input-group">
+                <label>بڕی پارە (بە دینار):</label>
+                <input type="number" id="debtAmount" inputmode="decimal" placeholder="نموونە: 25000">
+            </div>
+
+            <div class="debt-input-group">
+                <label>تێبینی / کاڵاکان:</label>
+                <input type="text" id="debtNote" placeholder="چی بردووە؟...">
+            </div>
+
+            <button class="btn btn-save" onclick="saveDebtTransaction()">تۆمارکردن</button>
+        </div>
+
+        <div class="history-section">
+            <input type="text" id="searchDebtor" class="search-box" placeholder="🔍 گەڕان بەدوای ناو..." oninput="renderDebtorsList()">
+            <h3>لیستی قەرزدارەکان</h3>
+            <div id="debtorsList"></div>
+        </div>
+    </div>
+
+    <div id="tab-backup" class="tab-content">
+        <div class="backup-card">
+            <div class="backup-icon">📥</div>
+            <h3 style="margin-top: 0;">دابەزاندنی داتاکان (Backup)</h3>
+            <p style="font-size: 13px; color: #555;">هەموو قەرز و وەسڵەکانت وەک فایلێک دادەبەزێت. ئەم فایلە لە شوێنێکی پارێزراو هەڵبگرە بۆ ئەوەی ئەگەر بەرنامەکەت سڕایەوە، بتوانیت بیهێنیتەوە.</p>
+            <button class="btn btn-add" style="width: 100%;" onclick="exportData()">⬇️ دابەزاندنی فایل</button>
+        </div>
+
+        <div class="backup-card" style="border-color: var(--danger);">
+            <div class="backup-icon">📤</div>
+            <h3 style="margin-top: 0; color: var(--danger);">هێنانەوەی داتا (Restore)</h3>
+            <p style="font-size: 13px; color: #555;">ئەو فایلەی کە پێشتر داتبەزاندووە لێرە هەڵیبژێرە بۆ گەڕاندنەوەی ناوەکان. <br><b>ئاگاداربە:</b> ئەمە داتای ئێستات دەسڕێتەوە و هی ناو فایلەکە دادەنێت!</p>
+            
+            <div class="file-upload-wrapper">
+                <button class="btn-upload">📁 هەڵبژاردنی فایلی داتا...</button>
+                <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+            </div>
+        </div>
+    </div>
+
+    <div class="designer-name">دیزاین و دروستکردنی: شیروان</div>
+</div>
+
+<div class="modal" id="receiptModal">
+    <div class="modal-content">
+        <div id="modalBody"></div>
+        <div class="modal-btns">
+            <button class="btn btn-download" onclick="downloadReceiptImage()">📥 دابەزاندن بۆ مۆبایل</button>
+            <button class="btn btn-close" onclick="closeModal()">داخستن</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('input', function (e) {
+        if (e.target.type === 'number') {
+            let val = e.target.value;
+            val = val.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+            val = val.replace(/[^0-9.]/g, '');
+            if(e.target.value !== val) e.target.value = val;
+        }
+    });
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    window.onload = function() { loadHistory(); calculateAll(); renderDebtorsList(); };
+
+    // وەسڵ
+    function updateRowNumbers() { document.querySelectorAll('#itemsBody tr').forEach((row, index) => { row.querySelector('.row-num-cell').innerText = index + 1; }); }
+    function addRow() {
+        const tbody = document.getElementById('itemsBody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="row-num-cell"></td><td><input type="text" placeholder="ناو"></td><td><input type="number" class="qty" min="0" placeholder="١" inputmode="decimal" oninput="calculateAll()"></td><td><input type="number" class="price" min="0" placeholder="نرخ" inputmode="decimal" oninput="calculateAll()"></td><td><input type="text" class="row-total" placeholder="٠" readonly></td>`;
+        tbody.appendChild(tr); updateRowNumbers();
+    }
+    function removeEmptyRows() {
+        const rows = document.querySelectorAll('#itemsBody tr');
+        let removed = false;
+        rows.forEach(row => {
+            if (rows.length > 1 && row.querySelector('input[type="text"]').value.trim() === "" && (parseFloat(row.querySelector('.price').value) || 0) === 0) { row.remove(); removed = true; }
+        });
+        if (removed) { updateRowNumbers(); calculateAll(); } else { alert("هیچ خانەیەکی بەتاڵ نییە بۆ سڕینەوە!"); }
+    }
+    function calculateAll() {
+        let grandTotal = 0;
+        const rateInput = parseFloat(document.getElementById('dollarRate').value) || 150000;
+        const currencyMode = document.querySelector('input[name="currencyMode"]:checked').value;
+        document.getElementById('mainCurrencySymbol').innerText = currencyMode === 'IQD' ? 'دینار' : 'دۆلار';
+        document.getElementById('convertedCurrencySymbol').innerText = currencyMode === 'IQD' ? 'دۆلار' : 'دینار';
+        document.querySelectorAll('#itemsBody tr').forEach(row => {
+            const qty = parseFloat(row.querySelector('.qty').value) || 1;
+            const price = parseFloat(row.querySelector('.price').value) || 0;
+            const total = qty * price;
+            row.querySelector('.row-total').value = total > 0 ? total.toLocaleString() : "";
+            grandTotal += total;
+        });
+        document.getElementById('grandTotal').innerText = grandTotal.toLocaleString();
+        let converted = currencyMode === 'IQD' ? grandTotal / (rateInput/100) : grandTotal * (rateInput/100);
+        document.getElementById('convertedTotal').innerText = currencyMode === 'IQD' ? converted.toFixed(2) : Math.round(converted).toLocaleString();
+    }
+    function convertUsdToIqd() {
+        const usd = parseFloat(document.getElementById('calcUSD').value) || 0;
+        const rate = (parseFloat(document.getElementById('dollarRate').value) || 150000) / 100;
+        document.getElementById('resIQD').innerText = (usd * rate > 0 ? (usd * rate).toLocaleString() : "0") + " دینار";
+    }
+    function convertIqdToUsd() {
+        const iqd = parseFloat(document.getElementById('calcIQD').value) || 0;
+        const rate = (parseFloat(document.getElementById('dollarRate').value) || 150000) / 100;
+        document.getElementById('resUSD').innerText = (rate > 0 ? (iqd / rate).toFixed(2) : "0") + " دۆلار";
+    }
+    function clearAll() {
+        if(confirm("ئایا دڵنیای لە پاککردنەوە؟")) {
+            document.getElementById('itemsBody').innerHTML = ''; addRow();
+            document.getElementById('grandTotal').innerText = '0'; document.getElementById('convertedTotal').innerText = '0';
+            document.getElementById('calcUSD').value = ''; document.getElementById('calcIQD').value = '';
+            document.getElementById('resIQD').innerText = '0 دینار'; document.getElementById('resUSD').innerText = '0 دۆلار';
+            document.getElementById('receiptNote').value = '';
+        }
+    }
+    function saveReceipt() {
+        const grandTotal = document.getElementById('grandTotal').innerText;
+        if(grandTotal === "0" || grandTotal === "") return alert("وەسڵەکە بەتاڵە!");
+        let items = [];
+        document.querySelectorAll('#itemsBody tr').forEach(row => {
+            const price = parseFloat(row.querySelector('.price').value) || 0;
+            if(price > 0) {
+                const qtyStr = row.querySelector('.qty').value;
+                items.push({ name: row.querySelector('input[type="text"]').value || "کاڵا", qty: qtyStr === "" ? 1 : qtyStr, price: price.toLocaleString(), total: row.querySelector('.row-total').value });
+            }
+        });
+        const receipt = { date: new Date().toLocaleDateString('en-GB') + " | " + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}), total: grandTotal + " " + document.getElementById('mainCurrencySymbol').innerText, items: items, note: document.getElementById('receiptNote').value.trim() };
+        let history = JSON.parse(localStorage.getItem('dalinFull')) || [];
+        history.unshift(receipt); if(history.length > 20) history.pop();
+        localStorage.setItem('dalinFull', JSON.stringify(history)); loadHistory(); clearAll();
+    }
+    function loadHistory() {
+        const list = document.getElementById('historyList'); list.innerHTML = '';
+        const history = JSON.parse(localStorage.getItem('dalinFull')) || [];
+        if(history.length === 0) return list.innerHTML = '<li style="text-align:center; color:#999; padding:10px;">هیچ وەسڵێک نییە</li>';
+        history.forEach((rec, idx) => {
+            const li = document.createElement('li'); li.className = 'history-card';
+            li.innerHTML = `<div class="history-info" onclick="openReceiptModal(${idx})"><span class="history-date">#${idx+1} &nbsp; ${rec.date}</span><span class="history-amount">${rec.total}</span></div><button class="btn-delete-receipt" onclick="deleteReceipt(event, ${idx})">🗑️</button>`;
+            list.appendChild(li);
+        });
+    }
+    function deleteReceipt(e, idx) {
+        e.stopPropagation();
+        if(confirm("دڵنیای لە سڕینەوەی ئەم وەسڵە؟")) {
+            let history = JSON.parse(localStorage.getItem('dalinFull')) || []; history.splice(idx, 1); localStorage.setItem('dalinFull', JSON.stringify(history)); loadHistory();
+        }
+    }
+    function openReceiptModal(index) {
+        const rec = (JSON.parse(localStorage.getItem('dalinFull')) || [])[index]; if(!rec) return;
+        let rows = ''; rec.items.forEach(it => { rows += `<tr><td>${it.name}</td><td>${it.qty}</td><td>${it.price}</td><td>${it.total}</td></tr>`; });
+        const noteHtml = rec.note ? `<div style="text-align:right; margin-bottom:10px; font-size:14px; border-top:1px solid #eee; padding-top:10px;"><b>تێبینی:</b> ${rec.note}</div>` : '';
+        document.getElementById('modalBody').innerHTML = `<div id="captureArea" class="receipt-print" dir="rtl"><h2>مارکێتی خاڵخاڵان</h2><p>خاوەنی: محمد بێستون<br><span style="direction:ltr; display:inline-block; margin-top:5px;">${rec.date}</span></p><table><tr><th style="width:35%;">بابەت</th><th style="width:15%;">بڕ</th><th style="width:25%;">نرخ</th><th style="width:25%;">کۆ</th></tr>${rows}</table>${noteHtml}<div class="receipt-total">کۆی گشتی: ${rec.total}</div></div>`;
+        document.getElementById('receiptModal').style.display = 'flex';
+    }
+
+    // ==========================================
+    // قەرزەکان
+    // ==========================================
+    function getDebts() { return JSON.parse(localStorage.getItem('khalkhalanDebts')) || {}; }
+    function saveDebts(data) { localStorage.setItem('khalkhalanDebts', JSON.stringify(data)); renderDebtorsList(); }
+
+    // سیستەمی گەڕانی زیرەک
+    function showAutocomplete() {
+        const val = document.getElementById('debtorName').value.trim().toLowerCase();
+        const list = document.getElementById('autocompleteList');
+        list.innerHTML = '';
+        if (!val) { list.style.display = 'none'; return; }
+        
+        const debts = getDebts();
+        const names = Object.keys(debts).filter(n => n.toLowerCase().includes(val));
+        
+        if (names.length === 0) { list.style.display = 'none'; return; }
+        list.style.display = 'block';
+        
+        names.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerText = name;
+            item.onmousedown = function() { // onmousedown لەجیاتی onclick بۆ ئەوەی پێش onblur کار بکات
+                document.getElementById('debtorName').value = name;
+                list.style.display = 'none';
+            };
+            list.appendChild(item);
+        });
+    }
+    function hideAutocompleteDelayed() { setTimeout(() => { document.getElementById('autocompleteList').style.display = 'none'; }, 200); }
+
+    function saveDebtTransaction() {
+        const nameInput = document.getElementById('debtorName').value.trim();
+        const amountInput = parseFloat(document.getElementById('debtAmount').value);
+        const type = document.querySelector('input[name="debtType"]:checked').value;
+        const note = document.getElementById('debtNote').value.trim();
+
+        if(!nameInput || isNaN(amountInput) || amountInput <= 0) return alert("تکایە ناو و بڕی پارەکە بە دروستی بنووسە!");
+
+        let debts = getDebts();
+        if(!debts[nameInput]) debts[nameInput] = { total: 0, history: [] };
+
+        let currentTotal = debts[nameInput].total;
+        if(type === 'add') { currentTotal += amountInput; } else { currentTotal -= amountInput; if(currentTotal < 0) currentTotal = 0; }
+
+        debts[nameInput].total = currentTotal;
+        debts[nameInput].history.unshift({
+            date: new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}),
+            type: type, amount: amountInput, note: note, balance: currentTotal
+        });
+
+        saveDebts(debts);
+        document.getElementById('debtorName').value = ''; document.getElementById('debtAmount').value = ''; document.getElementById('debtNote').value = '';
+        alert("مامەڵەکە بە سەرکەوتوویی تۆمارکرا.");
+    }
+
+    function renderDebtorsList() {
+        const debts = getDebts(); const listDiv = document.getElementById('debtorsList');
+        const searchTerm = document.getElementById('searchDebtor').value.trim().toLowerCase();
+        listDiv.innerHTML = ''; let globalTotal = 0; let hasResults = false;
+        const sortedNames = Object.keys(debts).sort((a, b) => debts[b].total - debts[a].total);
+
+        sortedNames.forEach(name => {
+            const data = debts[name]; globalTotal += data.total;
+            if(name.toLowerCase().includes(searchTerm)) {
+                hasResults = true;
+                const card = document.createElement('div'); card.className = 'debtor-card'; card.onclick = () => openDebtModal(name);
+                const amountClass = data.total === 0 ? 'zero' : '';
+                const amountText = data.total === 0 ? 'سفر بووەتەوە' : data.total.toLocaleString() + ' دینار';
+                card.innerHTML = `<span class="debtor-name">👤 ${name}</span><span class="debtor-amount ${amountClass}">${amountText}</span>`;
+                listDiv.appendChild(card);
+            }
+        });
+        document.getElementById('totalMarketDebt').innerText = globalTotal.toLocaleString();
+        if(!hasResults) listDiv.innerHTML = '<p style="text-align:center; color:#999;">هیچ ناوێک نەدۆزرایەوە.</p>';
+    }
+
+    // پەنجەرەی قەرز لەگەڵ دوگمە خێراکان
+    function openDebtModal(name) {
+        const debts = getDebts(); const data = debts[name]; if(!data) return;
+
+        let historyRows = '';
+        data.history.forEach(h => {
+            const typeLabel = h.type === 'add' ? '<span style="color:red;">قەرز (برد)</span>' : '<span style="color:green;">دانەوە (هێنا)</span>';
+            const noteText = h.note ? `<br><small style="color:#777;">تێبینی: ${h.note}</small>` : '';
+            historyRows += `<tr><td style="font-size:11px; direction:ltr;">${h.date}</td><td>${typeLabel}</td><td>${h.amount.toLocaleString()}</td><td><b>${h.balance.toLocaleString()}</b>${noteText}</td></tr>`;
+        });
+
+        const quickActionsHtml = `
+            <div data-html2canvas-ignore="true">
+                <div class="quick-actions">
+                    <button class="btn-quick btn-quick-add" onclick="toggleQuickForm('add')">🔴 قەرزی نوێ</button>
+                    <button class="btn-quick btn-quick-pay" onclick="toggleQuickForm('pay')">🟢 پارەی هێنایەوە</button>
+                </div>
+                <div id="quickFormArea" class="quick-form-area">
+                    <input type="number" id="quickAmount" inputmode="decimal" placeholder="بڕی پارە بە دینار...">
+                    <input type="text" id="quickNote" placeholder="تێبینی (ئارەزوومەندانە)...">
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-save" id="quickSubmitBtn" style="padding:10px;" onclick="submitQuickDebt('${name}')">تۆمارکردن</button>
+                        <button class="btn btn-clear" style="padding:10px;" onclick="toggleQuickForm('close')">داخستن</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const printArea = `
+            ${quickActionsHtml}
+            <div id="captureArea" class="receipt-print" dir="rtl">
+                <h2>مارکێتی خاڵخاڵان</h2>
+                <p>خاوەنی: محمد بێستون<br>کڕیار: <b>${name}</b></p>
+                <div class="receipt-total" style="text-align:center; border:none; padding:10px; background:#f9f9f9; border-radius:8px; margin-bottom:15px;">
+                    کۆی قەرزی ماوە:<br> <span style="font-size:24px; color:var(--danger);">${data.total.toLocaleString()} دینار</span>
+                </div>
+                <table><tr><th>بەروار</th><th>جۆر</th><th>بڕ</th><th>ماوە</th></tr>${historyRows}</table>
+            </div>`;
+
+        document.getElementById('modalBody').innerHTML = printArea;
+        document.getElementById('receiptModal').style.display = 'flex';
+    }
+
+    let currentQuickAction = '';
+    function toggleQuickForm(type) {
+        const area = document.getElementById('quickFormArea');
+        if(type === 'close') { area.style.display = 'none'; return; }
+        area.style.display = 'block';
+        currentQuickAction = type;
+        document.getElementById('quickSubmitBtn').innerText = type === 'add' ? 'تۆمارکردنی قەرز 🔴' : 'تۆمارکردنی دانەوە 🟢';
+    }
+
+    function submitQuickDebt(name) {
+        const amt = parseFloat(document.getElementById('quickAmount').value);
+        const note = document.getElementById('quickNote').value.trim();
+        if(!amt || amt <= 0) return alert("تکایە بڕی پارەکە بە دروستی بنووسە!");
+
+        let debts = getDebts();
+        let currentTotal = debts[name].total;
+        if(currentQuickAction === 'add') { currentTotal += amt; } else { currentTotal -= amt; if(currentTotal < 0) currentTotal = 0; }
+        
+        debts[name].total = currentTotal;
+        debts[name].history.unshift({
+            date: new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}),
+            type: currentQuickAction, amount: amt, note: note, balance: currentTotal
+        });
+
+        saveDebts(debts);
+        openDebtModal(name); // ڕیفرێشکردنی پەنجەرەکە بۆ بینینی داتا نوێیەکە
+    }
+
+    function closeModal() { document.getElementById('receiptModal').style.display = 'none'; }
+    function downloadReceiptImage() {
+        const target = document.getElementById('captureArea');
+        html2canvas(target, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement('a'); link.download = 'Wene_XalXalan.png'; link.href = canvas.toDataURL('image/png'); link.click();
+        });
+    }
+
+    // ==========================================
+    // باکئەپ
+    // ==========================================
+    function exportData() {
+        const data = { receipts: localStorage.getItem('dalinFull') || "[]", debts: localStorage.getItem('khalkhalanDebts') || "{}" };
+        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = `Khalkhalan_Backup_${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(url);
+    }
+    function importData(event) {
+        const file = event.target.files[0]; if(!file) return;
+        if(confirm("ئاگاداربە! هێنانەوەی ئەم فایلە هەموو داتاکانی ئێستات دەسڕێتەوە و هی ناو فایلەکە دادەنێت. دڵنیای؟")) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if(parsedData.receipts && parsedData.debts) {
+                        localStorage.setItem('dalinFull', parsedData.receipts); localStorage.setItem('khalkhalanDebts', parsedData.debts);
+                        alert("داتاکان بە سەرکەوتوویی گەڕێندرانەوە!"); location.reload();
+                    } else { alert("فایلەکە هەڵەیە یان تێکچووە!"); }
+                } catch (error) { alert("نەتوانرا فایلەکە بخوێندرێتەوە. تکایە دڵنیابە فایلی ڕاستە."); }
+            };
+            reader.readAsText(file);
+        }
+        event.target.value = '';
+    }
+</script>
+
+</body>
+</html>
