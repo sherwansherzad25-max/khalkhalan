@@ -13,6 +13,7 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3737/3737372.png">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -24,8 +25,8 @@
         .main-header h1 { color: var(--accent); margin: 0 0 5px 0; font-size: 24px; }
         .main-header .owner-name { color: #34495e; margin: 0; font-size: 16px; font-weight: bold; }
 
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #eaf2f8; padding: 5px; border-radius: 10px; }
-        .tab-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; cursor: pointer; font-weight: bold; font-size: 14px; color: var(--primary); border-radius: 8px; transition: 0.3s; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #eaf2f8; padding: 5px; border-radius: 10px; overflow-x: auto; }
+        .tab-btn { flex: 1; min-width: 70px; padding: 12px 5px; text-align: center; border: none; background: transparent; cursor: pointer; font-weight: bold; font-size: 14px; color: var(--primary); border-radius: 8px; transition: 0.3s; white-space: nowrap; }
         .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
@@ -36,7 +37,7 @@
         .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 15px; }
         table { width: 100%; min-width: 320px; border-collapse: collapse; table-layout: fixed; }
         th { background: #f8f9fa; padding: 8px 2px; border-bottom: 2px solid #ddd; font-size: 13px; text-align: center; }
-        td { padding: 5px 2px; border-bottom: 1px solid #eee; text-align: center; }
+        td { padding: 5px 2px; border-bottom: 1px solid #eee; text-align: center; position: relative; }
         .row-num-cell { font-weight: bold; color: var(--accent); font-size: 14px; width: 10%; }
         input[type="text"], input[type="number"] { width: 100%; padding: 10px 4px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: center; outline: none; background: #fff; -webkit-appearance: none; }
         input:focus { border-color: var(--accent); background: #f0f8ff; }
@@ -68,6 +69,7 @@
         .history-amount { font-weight: bold; color: var(--success); font-size: 15px; }
         .btn-delete-receipt { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;}
         .designer-name { text-align: center; margin-top: 25px; color: #7f8c8d; font-size: 14px; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 15px; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 10px; }
         .modal-content { background: #fff; width: 100%; max-width: 450px; border-radius: 12px; padding: 15px; max-height: 95vh; overflow-y: auto; position: relative; }
         .receipt-print { background: #fff; padding: 15px; border: 2px solid #333; border-radius: 8px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
@@ -106,6 +108,10 @@
         .autocomplete-list { position: absolute; width: 100%; background: #fff; border: 1px solid #ccc; border-top: none; z-index: 99; border-radius: 0 0 8px 8px; max-height: 150px; overflow-y: auto; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .autocomplete-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; color: var(--primary); }
         .autocomplete-item:hover { background-color: #f4f7f6; }
+        
+        .item-autocomplete-list { position: absolute; top: 100%; right: 0; width: 200px; background: #fff; border: 1px solid #accent; z-index: 100; border-radius: 4px; max-height: 150px; overflow-y: auto; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-align: right; }
+        .item-autocomplete-list div { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .item-autocomplete-list div:hover { background: #eaf2f8; }
 
         .quick-actions { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn-quick { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; color: white; cursor: pointer; font-size: 14px; }
@@ -113,6 +119,17 @@
         .btn-quick-pay { background: var(--success); }
         .quick-form-area { background: #eaf2f8; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; border: 1px solid #b3d7ff; }
         .quick-form-area input, .quick-form-area select { width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+
+        .inventory-card { background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .inventory-info h4 { margin: 0 0 5px 0; color: var(--primary); }
+        .inventory-info p { margin: 0; font-size: 13px; color: #555; }
+        .inventory-price { font-weight: bold; color: var(--success); font-size: 15px; }
+
+        /* ستایلی سکانەری کامێرا */
+        .input-with-btn { display: flex; gap: 5px; width: 100%; }
+        .input-with-btn input { flex: 1; min-width: 0; }
+        .btn-camera { background: var(--warning); color: white; border: none; border-radius: 6px; padding: 0 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        #reader { width: 100%; min-height: 300px; background: #000; margin-bottom: 15px; border-radius: 8px; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -125,6 +142,7 @@
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('tab-receipt', this)">🧾 وەسڵ</button>
+        <button class="tab-btn" onclick="switchTab('tab-inventory', this)">📦 کۆگا</button>
         <button class="tab-btn" onclick="switchTab('tab-debts', this)">📒 قەرزەکان</button>
         <button class="tab-btn" onclick="switchTab('tab-backup', this)">💾 داتا</button>
     </div>
@@ -141,7 +159,7 @@
                 <thead>
                     <tr>
                         <th style="width: 12%;">#</th>
-                        <th style="width: 33%;">بابەت</th>
+                        <th style="width: 33%;">بابەت / کۆد</th>
                         <th style="width: 15%;">بڕ</th>
                         <th style="width: 20%;">نرخ</th>
                         <th style="width: 20%;">کۆ</th>
@@ -150,7 +168,13 @@
                 <tbody id="itemsBody">
                     <tr>
                         <td class="row-num-cell">١</td>
-                        <td><input type="text" placeholder="ناو"></td>
+                        <td>
+                            <div class="input-with-btn">
+                                <input type="text" class="item-input" placeholder="کۆد/ناو..." oninput="searchInventory(this)" onblur="hideInventoryList(this)" autocomplete="off">
+                                <button class="btn-camera" onclick="openScanner(this)">📷</button>
+                            </div>
+                            <div class="item-autocomplete-list"></div>
+                        </td>
                         <td><input type="text" class="qty format-num" placeholder="١" inputmode="decimal" oninput="calculateAll()"></td>
                         <td><input type="text" class="price format-num" placeholder="نرخ" inputmode="decimal" oninput="calculateAll()"></td>
                         <td><input type="text" class="row-total" placeholder="٠" readonly></td>
@@ -203,8 +227,41 @@
         </div>
     </div>
 
+    <div id="tab-inventory" class="tab-content">
+        <div class="debt-form">
+            <h3 style="margin-top:0; text-align:center; color:var(--primary);">ناساندنی کاڵای نوێ / دەستکاریکردن</h3>
+            
+            <div class="debt-input-group">
+                <label>کۆد یان بارکۆد:</label>
+                <div class="input-with-btn">
+                    <input type="text" id="invCode" placeholder="بە سکانەر بیخوێنەرەوە یان بنووسە...">
+                    <button class="btn-camera" onclick="openScanner(this, 'invCode')">📷</button>
+                </div>
+            </div>
+            <div class="debt-input-group">
+                <label>ناوی کاڵا:</label>
+                <input type="text" id="invName" placeholder="نموونە: چای مەحمود ٥٠٠گم">
+            </div>
+            <div class="debt-input-group">
+                <label>نرخی کڕین (تێچوو):</label>
+                <input type="text" id="invBuy" class="format-num" inputmode="decimal" placeholder="نموونە: 3,500">
+            </div>
+            <div class="debt-input-group">
+                <label>نرخی فرۆشتن:</label>
+                <input type="text" id="invSell" class="format-num" inputmode="decimal" placeholder="نموونە: 4,000">
+            </div>
+
+            <button class="btn btn-save" onclick="saveInventoryItem()">تۆمارکردن لە کۆگا</button>
+        </div>
+
+        <div class="history-section">
+            <input type="text" id="searchInventoryInput" class="search-box" placeholder="🔍 گەڕان بەدوای کاڵا یان کۆد..." oninput="renderInventoryList()">
+            <h3>لیستی کاڵاکانی مەخزەن</h3>
+            <div id="inventoryListArea"></div>
+        </div>
+    </div>
+
     <div id="tab-debts" class="tab-content">
-        
         <div class="total-section" style="background: var(--danger); font-size: 16px;">
             کۆی گشتی قەرزی بازاڕ:<br>
             <div style="display:flex; justify-content:space-around; margin-top:10px;">
@@ -260,14 +317,14 @@
         <div class="backup-card">
             <div class="backup-icon">📥</div>
             <h3 style="margin-top: 0;">دابەزاندنی داتاکان (Backup)</h3>
-            <p style="font-size: 13px; color: #555;">هەموو قەرز و وەسڵەکانت وەک فایلێک دادەبەزێت. ئەم فایلە لە شوێنێکی پارێزراو هەڵبگرە بۆ ئەوەی ئەگەر بەرنامەکەت سڕایەوە، بتوانیت بیهێنیتەوە.</p>
+            <p style="font-size: 13px; color: #555;">هەموو قەرز، وەسڵ و کاڵاکانی کۆگا وەک فایلێک دادەبەزێت. لە شوێنێکی پارێزراو هەڵیبگرە.</p>
             <button class="btn btn-add" style="width: 100%;" onclick="exportData()">⬇️ دابەزاندنی فایل</button>
         </div>
 
         <div class="backup-card" style="border-color: var(--danger);">
             <div class="backup-icon">📤</div>
             <h3 style="margin-top: 0; color: var(--danger);">هێنانەوەی داتا (Restore)</h3>
-            <p style="font-size: 13px; color: #555;">ئەو فایلەی کە پێشتر داتبەزاندووە لێرە هەڵیبژێرە بۆ گەڕاندنەوەی ناوەکان. <br><b>ئاگاداربە:</b> ئەمە داتای ئێستات دەسڕێتەوە و هی ناو فایلەکە دادەنێت!</p>
+            <p style="font-size: 13px; color: #555;">ئەو فایلەی کە پێشتر داتبەزاندووە لێرە هەڵیبژێرە. <br><b>ئاگاداربە:</b> داتای ئێستات دەسڕێتەوە و هی ناو فایلەکە دادەنێت!</p>
             
             <div class="file-upload-wrapper">
                 <button class="btn-upload">📁 هەڵبژاردنی فایلی داتا...</button>
@@ -289,9 +346,18 @@
     </div>
 </div>
 
+<div class="modal" id="scannerModal">
+    <div class="modal-content" style="max-width: 400px; padding: 20px;">
+        <h3 style="text-align:center; margin-top:0;">سکانەری کامێرا</h3>
+        <p style="font-size: 12px; color: #666; text-align:center; margin-bottom:15px;">کامێراکە بگرە سەر بارکۆدی کاڵاکە بۆ خوێندنەوەی</p>
+        <div id="reader"></div>
+        <button class="btn btn-close" style="width:100%; margin-top:15px;" onclick="closeScanner()">داخستنی کامێرا</button>
+    </div>
+</div>
+
 <script>
     // ==========================================
-    // فەنکشنە بنەڕەتییەکان (فاریزە و نووسینی کوردی)
+    // فەنکشنە بنەڕەتییەکان
     // ==========================================
     function unformat(val) {
         if (!val) return 0;
@@ -307,11 +373,8 @@
             if (val !== "") {
                 let parts = val.split('.');
                 parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
-                if(parts.length > 1) {
-                    e.target.value = parts[0] + '.' + parts[1];
-                } else {
-                    e.target.value = parts[0];
-                }
+                if(parts.length > 1) { e.target.value = parts[0] + '.' + parts[1]; } 
+                else { e.target.value = parts[0]; }
             } else {
                 e.target.value = "";
             }
@@ -332,7 +395,6 @@
             let t = Math.floor(n / 10);
             return tens[t] + (u > 0 ? " و " + units[u] : "");
         }
-        
         function convertHundreds(n) {
             if (n < 100) return convertTenths(n);
             let u = n % 100;
@@ -362,26 +424,234 @@
         btn.classList.add('active');
     }
 
-    window.onload = function() { loadHistory(); calculateAll(); renderDebtorsList(); };
+    window.onload = function() { 
+        loadHistory(); 
+        calculateAll(); 
+        renderDebtorsList();
+        renderInventoryList();
+    };
 
     // ==========================================
-    // وەسڵ
+    // سکانەری بارکۆد بە کامێرا
+    // ==========================================
+    let html5QrCode = null;
+    let currentScannerTarget = null; 
+
+    function openScanner(btnElem, targetId = null) {
+        if (targetId) {
+            currentScannerTarget = document.getElementById(targetId);
+        } else {
+            currentScannerTarget = btnElem.previousElementSibling; 
+        }
+
+        document.getElementById('scannerModal').style.display = 'flex';
+        
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+                currentScannerTarget.value = decodedText;
+                closeScanner();
+                currentScannerTarget.dispatchEvent(new Event('input', { bubbles: true }));
+            },
+            (errorMessage) => {}
+        ).catch(err => {
+            alert("نەتوانرا کامێرا بکرێتەوە! دڵنیابە لەوەی مۆڵەتت داوە بە وێبگەڕەکە بۆ بەکارهێنانی کامێرا.");
+            closeScanner();
+        });
+    }
+
+    function closeScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+            }).catch(err => console.log(err));
+        }
+        document.getElementById('scannerModal').style.display = 'none';
+    }
+
+    // ==========================================
+    // بەشی کۆگا (Inventory)
+    // ==========================================
+    function getInventory() {
+        return JSON.parse(localStorage.getItem('khalkhalanInventory')) || {};
+    }
+    
+    function saveInventory(data) {
+        localStorage.setItem('khalkhalanInventory', JSON.stringify(data));
+        renderInventoryList();
+    }
+
+    function saveInventoryItem() {
+        const code = document.getElementById('invCode').value.trim();
+        const name = document.getElementById('invName').value.trim();
+        const buyPrice = unformat(document.getElementById('invBuy').value);
+        const sellPrice = unformat(document.getElementById('invSell').value);
+
+        if(!code || !name || sellPrice <= 0) return alert("تکایە کۆد، ناو و نرخی فرۆشتن بە دروستی پڕبکەرەوە!");
+
+        let inv = getInventory();
+        inv[code] = { name: name, buyPrice: buyPrice, sellPrice: sellPrice };
+        saveInventory(inv);
+
+        document.getElementById('invCode').value = '';
+        document.getElementById('invName').value = '';
+        document.getElementById('invBuy').value = '';
+        document.getElementById('invSell').value = '';
+        alert("کاڵاکە خرایە کۆگاوە یان نوێ کرایەوە!");
+    }
+
+    function renderInventoryList() {
+        const inv = getInventory();
+        const listDiv = document.getElementById('inventoryListArea');
+        const search = document.getElementById('searchInventoryInput').value.trim().toLowerCase();
+        listDiv.innerHTML = '';
+
+        Object.keys(inv).forEach(code => {
+            const item = inv[code];
+            if(code.toLowerCase().includes(search) || item.name.toLowerCase().includes(search)) {
+                const card = document.createElement('div');
+                card.className = 'inventory-card';
+                card.innerHTML = `
+                    <div class="inventory-info">
+                        <h4>${item.name}</h4>
+                        <p>کۆد: ${code} | فرۆشتن: <span class="inventory-price">${item.sellPrice.toLocaleString()}</span></p>
+                    </div>
+                    <div>
+                        <button onclick="editInventoryItem('${code}')" style="background:var(--accent); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; margin-left:5px;">✏️</button>
+                        <button onclick="deleteInventoryItem('${code}')" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">🗑️</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            }
+        });
+        if(listDiv.innerHTML === '') listDiv.innerHTML = '<p style="text-align:center; color:#999;">هیچ کاڵایەک نەدۆزرایەوە.</p>';
+    }
+
+    // فەنکشنی نوێ بۆ دەستکاریکردنی کاڵاکانی کۆگا
+    function editInventoryItem(code) {
+        const inv = getInventory();
+        const item = inv[code];
+        if (item) {
+            document.getElementById('invCode').value = code;
+            document.getElementById('invName').value = item.name;
+            document.getElementById('invBuy').value = item.buyPrice > 0 ? item.buyPrice.toLocaleString('en-US') : '';
+            document.getElementById('invSell').value = item.sellPrice.toLocaleString('en-US');
+            
+            // شاشەکە بباتەوە سەرەوە بۆ لای فۆڕمەکە
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function deleteInventoryItem(code) {
+        if(confirm("ئایا دڵنیای لە سڕینەوەی ئەم کاڵایە؟")) {
+            let inv = getInventory();
+            delete inv[code];
+            saveInventory(inv);
+        }
+    }
+
+    // ==========================================
+    // وەسڵ و بەستنەوەی بە کۆگا
     // ==========================================
     function updateRowNumbers() { document.querySelectorAll('#itemsBody tr').forEach((row, index) => { row.querySelector('.row-num-cell').innerText = index + 1; }); }
+    
     function addRow() {
         const tbody = document.getElementById('itemsBody');
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="row-num-cell"></td><td><input type="text" placeholder="ناو"></td><td><input type="text" class="qty format-num" placeholder="١" inputmode="decimal" oninput="calculateAll()"></td><td><input type="text" class="price format-num" placeholder="نرخ" inputmode="decimal" oninput="calculateAll()"></td><td><input type="text" class="row-total" placeholder="٠" readonly></td>`;
+        tr.innerHTML = `
+            <td class="row-num-cell"></td>
+            <td>
+                <div class="input-with-btn">
+                    <input type="text" class="item-input" placeholder="کۆد/ناو..." oninput="searchInventory(this)" onblur="hideInventoryList(this)" autocomplete="off">
+                    <button class="btn-camera" onclick="openScanner(this)">📷</button>
+                </div>
+                <div class="item-autocomplete-list"></div>
+            </td>
+            <td><input type="text" class="qty format-num" placeholder="١" inputmode="decimal" oninput="calculateAll()"></td>
+            <td><input type="text" class="price format-num" placeholder="نرخ" inputmode="decimal" oninput="calculateAll()"></td>
+            <td><input type="text" class="row-total" placeholder="٠" readonly></td>`;
         tbody.appendChild(tr); updateRowNumbers();
+        tr.querySelector('.item-input').focus();
     }
+
     function removeEmptyRows() {
         const rows = document.querySelectorAll('#itemsBody tr');
         let removed = false;
         rows.forEach(row => {
-            if (rows.length > 1 && row.querySelector('input[type="text"]').value.trim() === "" && unformat(row.querySelector('.price').value) === 0) { row.remove(); removed = true; }
+            if (rows.length > 1 && row.querySelector('.item-input').value.trim() === "" && unformat(row.querySelector('.price').value) === 0) { row.remove(); removed = true; }
         });
         if (removed) { updateRowNumbers(); calculateAll(); } else { alert("هیچ خانەیەکی بەتاڵ نییە بۆ سڕینەوە!"); }
     }
+
+    function searchInventory(inputElem) {
+        const val = inputElem.value.trim().toLowerCase();
+        const listDiv = inputElem.closest('td').querySelector('.item-autocomplete-list');
+        const row = inputElem.closest('tr');
+        listDiv.innerHTML = '';
+        
+        if(!val) { listDiv.style.display = 'none'; return; }
+
+        const inv = getInventory();
+        let exactMatchCode = null;
+        let matches = [];
+
+        Object.keys(inv).forEach(code => {
+            if(code.toLowerCase() === val) exactMatchCode = code; 
+            else if(code.toLowerCase().includes(val) || inv[code].name.toLowerCase().includes(val)) {
+                matches.push({code: code, name: inv[code].name, price: inv[code].sellPrice});
+            }
+        });
+
+        if(exactMatchCode) {
+            selectInventoryItem(inputElem, inv[exactMatchCode].name, inv[exactMatchCode].sellPrice);
+            listDiv.style.display = 'none';
+            return;
+        }
+
+        if(matches.length > 0) {
+            listDiv.style.display = 'block';
+            matches.forEach(m => {
+                const div = document.createElement('div');
+                div.innerText = `${m.name} - ${m.price.toLocaleString()}`;
+                div.onmousedown = function() { 
+                    selectInventoryItem(inputElem, m.name, m.price);
+                    listDiv.style.display = 'none';
+                };
+                listDiv.appendChild(div);
+            });
+        } else {
+            listDiv.style.display = 'none';
+        }
+    }
+
+    function hideInventoryList(inputElem) {
+        setTimeout(() => { 
+            const listDiv = inputElem.closest('td').querySelector('.item-autocomplete-list');
+            if(listDiv) listDiv.style.display = 'none'; 
+        }, 200);
+    }
+
+    function selectInventoryItem(inputElem, name, price) {
+        inputElem.value = name;
+        const row = inputElem.closest('tr');
+        const priceInput = row.querySelector('.price');
+        priceInput.value = price.toLocaleString('en-US');
+        
+        const qtyInput = row.querySelector('.qty');
+        if(!qtyInput.value) qtyInput.value = "1";
+        
+        calculateAll();
+        
+        const allRows = document.querySelectorAll('#itemsBody tr');
+        if(row === allRows[allRows.length - 1]) {
+            addRow();
+        } else {
+            qtyInput.focus();
+        }
+    }
+
     function calculateAll() {
         let grandTotal = 0;
         const rateInput = unformat(document.getElementById('dollarRate').value) || 150000;
@@ -400,6 +670,7 @@
         let converted = currencyMode === 'IQD' ? grandTotal / (rateInput/100) : grandTotal * (rateInput/100);
         document.getElementById('convertedTotal').innerText = currencyMode === 'IQD' ? converted.toFixed(2) : Math.round(converted).toLocaleString();
     }
+    
     function convertUsdToIqd() {
         const usd = unformat(document.getElementById('calcUSD').value);
         const rate = (unformat(document.getElementById('dollarRate').value) || 150000) / 100;
@@ -410,6 +681,7 @@
         const rate = (unformat(document.getElementById('dollarRate').value) || 150000) / 100;
         document.getElementById('resUSD').innerText = (rate > 0 ? (iqd / rate).toFixed(2) : "0") + " دۆلار";
     }
+    
     function clearAll() {
         if(confirm("ئایا دڵنیای لە پاککردنەوە؟")) {
             document.getElementById('itemsBody').innerHTML = ''; addRow();
@@ -419,6 +691,7 @@
             document.getElementById('receiptNote').value = '';
         }
     }
+    
     function saveReceipt() {
         const grandTotal = document.getElementById('grandTotal').innerText;
         if(grandTotal === "0" || grandTotal === "") return alert("وەسڵەکە بەتاڵە!");
@@ -427,7 +700,7 @@
             const price = unformat(row.querySelector('.price').value);
             if(price > 0) {
                 let qtyStr = row.querySelector('.qty').value;
-                items.push({ name: row.querySelector('input[type="text"]').value || "کاڵا", qty: qtyStr === "" ? "1" : qtyStr, price: price.toLocaleString(), total: row.querySelector('.row-total').value });
+                items.push({ name: row.querySelector('.item-input').value || "کاڵا", qty: qtyStr === "" ? "1" : qtyStr, price: price.toLocaleString(), total: row.querySelector('.row-total').value });
             }
         });
         const currencyName = document.getElementById('mainCurrencySymbol').innerText;
@@ -444,6 +717,7 @@
         history.unshift(receipt); if(history.length > 20) history.pop();
         localStorage.setItem('dalinFull', JSON.stringify(history)); loadHistory(); clearAll();
     }
+    
     function loadHistory() {
         const list = document.getElementById('historyList'); list.innerHTML = '';
         const history = JSON.parse(localStorage.getItem('dalinFull')) || [];
@@ -454,12 +728,14 @@
             list.appendChild(li);
         });
     }
+    
     function deleteReceipt(e, idx) {
         e.stopPropagation();
         if(confirm("دڵنیای لە سڕینەوەی ئەم وەسڵە؟")) {
             let history = JSON.parse(localStorage.getItem('dalinFull')) || []; history.splice(idx, 1); localStorage.setItem('dalinFull', JSON.stringify(history)); loadHistory();
         }
     }
+    
     function openReceiptModal(index) {
         const rec = (JSON.parse(localStorage.getItem('dalinFull')) || [])[index]; if(!rec) return;
         let rows = ''; rec.items.forEach(it => { rows += `<tr><td>${it.name}</td><td>${it.qty}</td><td>${it.price}</td><td>${it.total}</td></tr>`; });
@@ -471,7 +747,7 @@
     }
 
     // ==========================================
-    // قەرزەکان (دینار و دۆلار بە جیا)
+    // قەرزەکان
     // ==========================================
     function getDebts() { return JSON.parse(localStorage.getItem('khalkhalanDebts')) || {}; }
     function saveDebts(data) { localStorage.setItem('khalkhalanDebts', JSON.stringify(data)); renderDebtorsList(); }
@@ -499,6 +775,7 @@
             list.appendChild(item);
         });
     }
+    
     function hideAutocompleteDelayed() { setTimeout(() => { document.getElementById('autocompleteList').style.display = 'none'; }, 200); }
 
     function saveDebtTransaction() {
@@ -686,14 +963,19 @@
     }
 
     // ==========================================
-    // باکئەپ
+    // باکئەپ 
     // ==========================================
     function exportData() {
-        const data = { receipts: localStorage.getItem('dalinFull') || "[]", debts: localStorage.getItem('khalkhalanDebts') || "{}" };
+        const data = { 
+            receipts: localStorage.getItem('dalinFull') || "[]", 
+            debts: localStorage.getItem('khalkhalanDebts') || "{}",
+            inventory: localStorage.getItem('khalkhalanInventory') || "{}"
+        };
         const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a'); link.href = url; link.download = `Khalkhalan_Backup_${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(url);
     }
+    
     function importData(event) {
         const file = event.target.files[0]; if(!file) return;
         if(confirm("ئاگاداربە! هێنانەوەی ئەم فایلە هەموو داتاکانی ئێستات دەسڕێتەوە و هی ناو فایلەکە دادەنێت. دڵنیای؟")) {
@@ -702,7 +984,10 @@
                 try {
                     const parsedData = JSON.parse(e.target.result);
                     if(parsedData.receipts && parsedData.debts) {
-                        localStorage.setItem('dalinFull', parsedData.receipts); localStorage.setItem('khalkhalanDebts', parsedData.debts);
+                        localStorage.setItem('dalinFull', parsedData.receipts); 
+                        localStorage.setItem('khalkhalanDebts', parsedData.debts);
+                        if(parsedData.inventory) localStorage.setItem('khalkhalanInventory', parsedData.inventory);
+                        
                         alert("داتاکان بە سەرکەوتوویی گەڕێندرانەوە!"); location.reload();
                     } else { alert("فایلەکە هەڵەیە یان تێکچووە!"); }
                 } catch (error) { alert("نەتوانرا فایلەکە بخوێندرێتەوە. تکایە دڵنیابە فایلی ڕاستە."); }
